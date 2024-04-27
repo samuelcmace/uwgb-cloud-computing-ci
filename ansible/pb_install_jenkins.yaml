@@ -1,0 +1,88 @@
+---
+- hosts: aws_instance
+  become: true
+  become_method: sudo
+  become_user: root
+  tasks:
+
+  - name: Upgrade All Packages on System
+    ansible.builtin.apt:
+      update_cache: true
+      cache_valid_time: 3600
+      name: "*"
+      state: latest
+
+  - name: Install Select Package Dependencies
+    ansible.builtin.apt:
+      update_cache: true
+      cache_valid_time: 3600
+      name:
+        - fontconfig
+        - openjdk-17-jre
+        - maven
+        - default-jdk
+        - acl
+      state: latest
+
+  - name: Download Jenkins Signing Key
+    ansible.builtin.get_url:
+      url: https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
+      dest: /usr/share/keyrings/jenkins-keyring.asc
+
+  - name: Add Jenkins Repository to System
+    ansible.builtin.apt_repository:
+      repo: "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/"
+
+  - name: Install Jenkins
+    ansible.builtin.apt:
+      update_cache: true
+      cache_valid_time: 3600
+      name: jenkins
+      state: latest
+
+  - name: Enable Jenkins Systemd Service
+    ansible.builtin.systemd_service:
+      name: jenkins
+      state: started
+
+  - name: Configure SSH Key for Jenkins User
+    user:
+      name: jenkins
+      generate_ssh_key: yes
+      ssh_key_type: rsa
+      ssh_key_bits: 4096
+      ssh_key_file: /var/lib/jenkins/.ssh/id_rsa
+
+  - name: Add GitHub to Known Hosts
+    ansible.builtin.shell: >
+      ssh-keyscan github.com >> /var/lib/jenkins/.ssh/known_hosts
+    become_user: jenkins
+
+  - name: Query Generated SSH Public Key
+    ansible.builtin.shell: >
+      cat /var/lib/jenkins/.ssh/id_rsa.pub
+    become_user: jenkins
+    register: sshkey
+
+  - name: Query Jenkins Setup Password
+    ansible.builtin.shell: cat /var/lib/jenkins/secrets/initialAdminPassword
+    register: adminpwd
+    ignore_errors: yes
+
+  - name: Query OpenJDK Location
+    ansible.builtin.shell: readlink -f /usr/bin/javac
+    register: openjdk
+    ignore_errors: yes
+
+  - name: Query Maven Location
+    ansible.builtin.shell: readlink -f /usr/bin/mvn
+    register: mvn
+    ignore_errors: yes
+
+  - name: Display Manual Setup Information Ansible Shell
+    ansible.builtin.debug:
+      msg:
+        - "Jenkins Default Admin Password: {{ adminpwd.stdout_lines }}"
+        - "OpenJDK Path: {{ openjdk.stdout_lines }}"
+        - "Maven Path: {{ mvn.stdout_lines }}"
+        - "Jenkins Public SSH Key: {{ sshkey.stdout_lines }}"
