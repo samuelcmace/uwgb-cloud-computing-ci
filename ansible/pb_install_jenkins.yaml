@@ -3,6 +3,16 @@
   become: true
   become_method: sudo
   become_user: root
+  vars_prompt:
+
+  - name: aws_access_key_id
+    prompt: Please Enter the AWS Access Key ID
+    private: true
+
+  - name: aws_secret_access_key
+    prompt: Please Enter the AWS Secret Access Key
+    private: true
+
   tasks:
 
   - name: Upgrade All Packages on System
@@ -46,7 +56,7 @@
       state: started
 
   - name: Configure SSH Key for Jenkins User
-    user:
+    ansible.builtin.user:
       name: jenkins
       generate_ssh_key: yes
       ssh_key_type: rsa
@@ -56,6 +66,27 @@
   - name: Add GitHub to Known Hosts
     ansible.builtin.shell: >
       ssh-keyscan github.com >> /var/lib/jenkins/.ssh/known_hosts
+    become_user: jenkins
+
+  - name: Install aws-cli Snap Package
+    community.general.snap:
+      name: aws-cli
+      state: present
+      classic: true
+
+  - name: Create AWS Configuration Directory for Jenkins User
+    ansible.builtin.file:
+      path: /var/lib/jenkins/.aws/
+      state: directory
+    become_user: jenkins
+
+  - name: Populate AWS Credentials Configuration File for Jenkins User
+    ansible.builtin.copy:
+      content: |
+        [default]
+        aws_access_key_id = {{ aws_access_key_id }}
+        aws_secret_access_key = {{ aws_secret_access_key }}
+      dest: /var/lib/jenkins/.aws/credentials
     become_user: jenkins
 
   - name: Query Generated SSH Public Key
