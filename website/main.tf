@@ -2,7 +2,7 @@ terraform {
     required_providers {
         aws = {
             source = "hashicorp/aws"
-            version = "~> 4.16"
+            version = "~> 5.0"
         }
     }
 
@@ -22,6 +22,15 @@ resource "aws_s3_bucket" "cs293ci" {
     }
 }
 
+resource "aws_s3_bucket_public_access_block" "cs293ci_bucket_public_access_block" {
+    bucket = aws_s3_bucket.cs293ci.id
+
+    block_public_acls       = false
+    block_public_policy     = false
+    ignore_public_acls      = false
+    restrict_public_buckets = false
+}
+
 data "aws_iam_policy_document" "cs293ci_iam_policy_document" {
     statement {
         principals {
@@ -33,6 +42,8 @@ data "aws_iam_policy_document" "cs293ci_iam_policy_document" {
         resources = ["${aws_s3_bucket.cs293ci.arn}/*"]
         effect = "Allow"
     }
+
+    depends_on = [ aws_s3_bucket_public_access_block.cs293ci_bucket_public_access_block ]
 }
 
 resource "aws_s3_bucket_policy" "cs293ci_bucket_policy" {
