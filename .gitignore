@@ -32,3 +32,6 @@ override.tf.json
 # Ignore CLI configuration files
 .terraformrc
 terraform.rc
+
+# Do not check Terraform lock into source control management.
+*.terraform.lock.hcl
