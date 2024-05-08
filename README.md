@@ -44,7 +44,7 @@ After executing these commands, a proposed execution plan will appear &ndash; in
 
 After creating a Jenkins server using Ansible and provisioning the cloud infrastructure by executing the Terraform script, the Jenkins server is ready to be configured.
 
-The first step is to create a *freestyle* project that will utilize the AWS CLI tools installed on the build agent via the execution of the Ansible script. After doing this, create a shell build step to sync the website contents to the S3 bucket by adding the following contents:
+The first step is to create a *freestyle* project that will utilize the AWS CLI tools installed on the build agent via the execution of the Ansible script. After doing this, create a shell build step to sync the website contents to the S3 bucket by adding the following contents (where `{bucket_name}` represents the name of the S3 bucket):
 
 ```shell
 aws s3 sync --delete ./ s3://{bucket_name}/
