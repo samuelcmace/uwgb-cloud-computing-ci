@@ -27,7 +27,7 @@ Upon successful execution of the playbook, the following (or a similar) message 
 
 ## Terraform
 
-[Terraform](https://www.terraform.io/) is an Infrastructure as Code (IaC) automation tool mean to automate the deployment of cloud resources in a cloud-agnostic way. The Terraform configuration housed in this repository creates an S3 bucket, configures public access, and configures a CloudFront distribution to interface with it. The Terraform configuration is housed in the `./website` directory.
+[Terraform](https://www.terraform.io/) is an Infrastructure as Code (IaC) automation tool designed to automate the deployment of cloud resources in a cloud-agnostic way. The Terraform configuration housed in this repository creates an S3 bucket, configures public access, and configures a CloudFront distribution to interface with it. The Terraform configuration is housed in the `./website` directory.
 
 To apply this configuraion, the [AWS CLI](https://aws.amazon.com/cli/) must first be configured on the system. After this is done, navigate to the Terraform configuration directory and execute the following commands:
 
